@@ -1,0 +1,129 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 85209756805,
+      "run_id": 28735841222,
+      "workflow_name": "Sync and Aggregate Reports",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/19138999001tf-tech/report/actions/runs/28735841222",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTOD17s8AAAAT1uW0hQ",
+      "head_sha": "9e150ced5897227a2bfe6c252adf2bb5bb8b6ace",
+      "url": "https://api.github.com/repos/19138999001tf-tech/report/actions/jobs/85209756805",
+      "html_url": "https://github.com/19138999001tf-tech/report/actions/runs/28735841222/job/85209756805",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-07-05T09:11:42Z",
+      "started_at": "2026-07-05T09:11:43Z",
+      "completed_at": "2026-07-05T09:12:30Z",
+      "name": "sync_and_aggregate",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-05T09:11:44Z",
+          "completed_at": "2026-07-05T09:11:45Z"
+        },
+        {
+          "name": "Checkout target repository",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-07-05T09:11:45Z",
+          "completed_at": "2026-07-05T09:12:18Z"
+        },
+        {
+          "name": "Configure Git",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-07-05T09:12:18Z",
+          "completed_at": "2026-07-05T09:12:18Z"
+        },
+        {
+          "name": "Add upstream remote and fetch",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-07-05T09:12:18Z",
+          "completed_at": "2026-07-05T09:12:19Z"
+        },
+        {
+          "name": "Merge upstream/main into current branch",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-07-05T09:12:19Z",
+          "completed_at": "2026-07-05T09:12:19Z"
+        },
+        {
+          "name": "Setup Python 3.10",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-07-05T09:12:19Z",
+          "completed_at": "2026-07-05T09:12:19Z"
+        },
+        {
+          "name": "Install Dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-07-05T09:12:19Z",
+          "completed_at": "2026-07-05T09:12:27Z"
+        },
+        {
+          "name": "Run Aggregate Script",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-07-05T09:12:27Z",
+          "completed_at": "2026-07-05T09:12:28Z"
+        },
+        {
+          "name": "Commit and Push Changes",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 9,
+          "started_at": "2026-07-05T09:12:28Z",
+          "completed_at": "2026-07-05T09:12:28Z"
+        },
+        {
+          "name": "Post Setup Python 3.10",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-07-05T09:12:28Z",
+          "completed_at": "2026-07-05T09:12:28Z"
+        },
+        {
+          "name": "Post Checkout target repository",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-07-05T09:12:28Z",
+          "completed_at": "2026-07-05T09:12:28Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-07-05T09:12:28Z",
+          "completed_at": "2026-07-05T09:12:28Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/19138999001tf-tech/report/check-runs/85209756805",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000000,
+      "runner_name": "GitHub Actions 1000000000",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

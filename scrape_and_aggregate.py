@@ -3,122 +3,127 @@ import glob
 import pandas as pd
 from datetime import datetime, timedelta
 import time
-import csv
+from collections import defaultdict
 
 from scraper.report_client import EastMoneyReportClient, ReportType
 
-def update_industry_reports(csv_path="scraper/industry.csv"):
+def scrape_recent_reports(days=2):
     client = EastMoneyReportClient()
-    begin_time = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
-    end_time = datetime.now().strftime('%Y-%m-%d')
     
-    print(f"Scraping reports from {begin_time} to {end_time}...")
+    end_date = datetime.now()
+    begin_date = end_date - timedelta(days=days)
     
-    # Read industry list
-    industries = []
-    with open(csv_path, 'r', encoding='utf-8-sig') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row['行业代码'] != '*':
-                industries.append((row['行业名称'], row['行业代码']))
+    end_time = end_date.strftime('%Y-%m-%d')
+    begin_time = begin_date.strftime('%Y-%m-%d')
+    
+    print(f"Scraping global industry reports from {begin_time} to {end_time}...")
+    
+    page_size = 100
+    page_no = 1
+    total_pages = 1
+    
+    industry_groups = defaultdict(list)
+    
+    while page_no <= total_pages:
+        try:
+            # We use global wildcard '*' to fetch all market reports across all industries in a single stream
+            raw_data = client.fetch_reports(
+                report_type=ReportType.INDUSTRY,
+                industry_code='*',
+                page_no=page_no,
+                page_size=page_size,
+                begin_time=begin_time,
+                end_time=end_time
+            )
+            
+            if not raw_data:
+                break
                 
-    total_new_reports = 0
+            if page_no == 1:
+                total_pages = int(raw_data.get('TotalPage', 1))
+                if total_pages == 0:
+                    total_pages = 1
+                print(f"Total global pages for last {days} days: {total_pages}")
+                
+            reports = client.parse_reports(raw_data, report_type=ReportType.INDUSTRY)
+            if not reports:
+                break
+                
+            for r in reports:
+                industry_name = r.get('industry_name', '未分类')
+                industry_groups[industry_name].append({
+                    '研报名称': r.get('title', ''),
+                    '机构名称': r.get('org_name', ''),
+                    '发布时间': r.get('publish_date', ''),
+                    '行业': industry_name,
+                    '研报地址': r.get('url', '')
+                })
+                
+            page_no += 1
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"Error fetching global page {page_no}: {e}")
+            break
+            
+    total_fetched = sum(len(v) for v in industry_groups.values())
+    print(f"\nSuccessfully fetched {total_fetched} recent reports across {len(industry_groups)} active industries.")
     
-    for name, code in industries:
-        print(f"Fetching {name} ({code})...")
-        
-        # We only fetch page 1 with page_size=100. Usually that's enough for 2 days of a single industry.
-        # If an industry has more than 100 reports in 2 days, we might need pagination, but 100 is highly safe for industry scope.
-        raw_data = client.fetch_reports(
-            report_type=ReportType.INDUSTRY,
-            industry_code=code,
-            page_no=1,
-            page_size=100,
-            begin_time=begin_time,
-            end_time=end_time
-        )
-        
-        if not raw_data:
+    total_new_reports = 0
+    os.makedirs('eastmoney', exist_ok=True)
+    
+    # Write directly to their respective industry csv files
+    for industry_name, new_data in industry_groups.items():
+        safe_name = "".join(c for c in industry_name if c not in r'\/:*?"<>|')
+        if not safe_name:
             continue
             
-        reports = client.parse_reports(raw_data, report_type=ReportType.INDUSTRY)
-        if not reports:
-            continue
-            
-        # Convert to our format
-        new_data = []
-        for r in reports:
-            new_data.append({
-                '研报名称': r.get('title', ''),
-                '机构名称': r.get('org_name', ''),
-                '发布时间': r.get('publish_date', ''),
-                '行业': r.get('industry_name', name),
-                '研报地址': r.get('url', '')
-            })
-            
+        file_path = f"eastmoney/{safe_name}.csv"
         new_df = pd.DataFrame(new_data)
-        
-        file_path = f"eastmoney/{name}.csv"
         
         if os.path.exists(file_path):
             existing_df = pd.read_csv(file_path, encoding='utf-8-sig')
             combined_df = pd.concat([new_df, existing_df], ignore_index=True)
         else:
             combined_df = new_df
-            os.makedirs('eastmoney', exist_ok=True)
             
-        # Deduplicate
         initial_len = len(combined_df)
         combined_df = combined_df.drop_duplicates(subset=['研报名称', '研报地址'], keep='first')
         combined_df = combined_df.sort_values(by='发布时间', ascending=False)
         
         new_added = len(combined_df) - (initial_len - len(new_df))
         if new_added > 0:
-            print(f" -> Added {new_added} new reports for {name}")
+            print(f" -> Added {new_added} new reports for {industry_name}")
             total_new_reports += new_added
             
         combined_df.to_csv(file_path, index=False, encoding='utf-8-sig')
-        time.sleep(1) # Be nice to the API
-        
-    print(f"Total new reports added: {total_new_reports}")
 
+    print(f"Total new reports added to local base: {total_new_reports}")
 
 def aggregate_all_reports(input_dir='eastmoney', output_file='All_Reports_Summary.csv'):
     csv_files = glob.glob(os.path.join(input_dir, '**', '*.csv'), recursive=True)
-    if not csv_files:
-        print(f"No CSV files found in {input_dir}")
-        return
-
     dfs = []
     for file in csv_files:
         try:
-            df = pd.read_csv(file, encoding='utf-8-sig')
-            dfs.append(df)
+            dfs.append(pd.read_csv(file, encoding='utf-8-sig'))
         except Exception as e:
-            print(f"Error reading {file}: {e}")
+            pass
 
-    if not dfs:
-        return
-
-    merged_df = pd.concat(dfs, ignore_index=True)
-    
-    if '发布时间' in merged_df.columns:
-        merged_df = merged_df.sort_values(by='发布时间', ascending=False)
-        
-    dedup_subset = []
-    if '研报名称' in merged_df.columns: dedup_subset.append('研报名称')
-    if '研报地址' in merged_df.columns: dedup_subset.append('研报地址')
-        
-    if dedup_subset:
-        merged_df = merged_df.drop_duplicates(subset=dedup_subset, keep='first')
-        
-    print(f"Aggregated total rows: {len(merged_df)}")
-    merged_df.to_csv(output_file, index=False, encoding='utf-8-sig')
-
+    if dfs:
+        merged_df = pd.concat(dfs, ignore_index=True)
+        if '发布时间' in merged_df.columns:
+            merged_df = merged_df.sort_values(by='发布时间', ascending=False)
+            
+        dedup_subset = []
+        if '研报名称' in merged_df.columns: dedup_subset.append('研报名称')
+        if '研报地址' in merged_df.columns: dedup_subset.append('研报地址')
+        if dedup_subset:
+            merged_df = merged_df.drop_duplicates(subset=dedup_subset, keep='first')
+            
+        print(f"Aggregated total rows: {len(merged_df)}")
+        merged_df.to_csv(output_file, index=False, encoding='utf-8-sig')
 
 if __name__ == "__main__":
-    print("Starting daily EastMoney scrape...")
-    update_industry_reports()
+    scrape_recent_reports(days=2)
     print("Aggregating all reports...")
     aggregate_all_reports()
     print("Done!")
