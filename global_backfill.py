@@ -52,6 +52,7 @@ def global_fetch(begin_time="2024-01-01"):
                     '机构名称': r.get('org_name', ''),
                     '发布时间': r.get('publish_date', ''),
                     '行业': industry_name,
+                    '页数': r.get('pages', ''),
                     '网页链接': r.get('url', ''),
                     'PDF直链': pdf_link
                 })

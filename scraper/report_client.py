@@ -340,6 +340,7 @@ class EastMoneyReportClient:
                 'report_type': item.get('reportType', ''),   # 研报类型
                 'rating_name': item.get('ratingName', ''),   # 评级
                 'column': item.get('column', ''),            # 栏目标识
+                'pages': item.get('attachPages', ''),        # 页数
                 'url': report_url
             }
             reports.append(report)
