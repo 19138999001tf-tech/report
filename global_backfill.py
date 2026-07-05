@@ -44,12 +44,16 @@ def global_fetch(begin_time="2024-01-01"):
                 
             for r in reports:
                 industry_name = r.get('industry_name', '未分类')
+                info_code = r.get('info_code', '')
+                pdf_link = f"https://pdf.dfcfw.com/pdf/H3_{info_code}_1.pdf" if info_code and info_code.startswith("AP") else ""
+                
                 industry_groups[industry_name].append({
                     '研报名称': r.get('title', ''),
                     '机构名称': r.get('org_name', ''),
                     '发布时间': r.get('publish_date', ''),
                     '行业': industry_name,
-                    '研报地址': r.get('url', '')
+                    '网页链接': r.get('url', ''),
+                    'PDF直链': pdf_link
                 })
                 
             if page_no % 50 == 0:
@@ -82,7 +86,7 @@ def global_fetch(begin_time="2024-01-01"):
             combined_df = new_df
             
         initial_len = len(combined_df)
-        combined_df = combined_df.drop_duplicates(subset=['研报名称', '研报地址'], keep='first')
+        combined_df = combined_df.drop_duplicates(subset=['研报名称', '网页链接'], keep='first')
         combined_df = combined_df.sort_values(by='发布时间', ascending=False)
         
         new_added = len(combined_df) - (initial_len - len(new_df))
@@ -108,7 +112,7 @@ def aggregate_all_reports(input_dir='eastmoney', output_file='All_Reports_Summar
             merged_df = merged_df.sort_values(by='发布时间', ascending=False)
         dedup_subset = []
         if '研报名称' in merged_df.columns: dedup_subset.append('研报名称')
-        if '研报地址' in merged_df.columns: dedup_subset.append('研报地址')
+        if '网页链接' in merged_df.columns: dedup_subset.append('网页链接')
         if dedup_subset:
             merged_df = merged_df.drop_duplicates(subset=dedup_subset, keep='first')
         print(f"Aggregated total rows: {len(merged_df)}")
