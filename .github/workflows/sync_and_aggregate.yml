@@ -2,7 +2,7 @@ name: Sync and Aggregate Reports
 
 on:
   schedule:
-    - cron: '10 9 * * *' # 9:10 UTC = 17:10 Beijing Time (For testing)
+    - cron: '7 9 * * *' # 9:07 UTC = 17:07 Beijing Time (For testing)
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:
