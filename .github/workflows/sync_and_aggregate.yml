@@ -5,6 +5,9 @@ on:
     - cron: '7 9 * * *' # 9:07 UTC = 17:07 Beijing Time (For testing)
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
+permissions:
+  contents: write
+
 jobs:
   sync_and_aggregate:
     runs-on: ubuntu-latest
